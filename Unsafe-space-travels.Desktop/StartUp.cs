@@ -19,6 +19,7 @@ namespace Unsafe_space_travels.Desktop
             try
             {
                 WebFolderPath = Path.MakeRooted(Path.Combine(Program.MyFolderPath, "web"));
+                SaveGamesFolderPath = Path.MakeRooted(Path.Combine(Program.MyFolderPath, "saves"));
                 Directory.Create(WebFolderPath);
                 VersionFilePath = Path.Combine(WebFolderPath, "version.txt");
                 ReleaseNotesFilePath = Path.Combine(WebFolderPath, "release-notes.txt");
@@ -42,6 +43,7 @@ namespace Unsafe_space_travels.Desktop
         }
 
         static public string WebFolderPath { get; private set; }
+        static public string SaveGamesFolderPath { get; private set; }
         static public string VersionFilePath { get; private set; }
         static public string ReleaseNotesFilePath { get; private set; }
     }
