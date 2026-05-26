@@ -44,9 +44,9 @@ namespace Unsafe_space_travels.Desktop.UI
 
             string page = "index.html";
 
-            //if (Debugger.IsAttached)
-            //    webView.Source = new Uri("http://localhost:5752/" + page);
-            //else
+            if (Debugger.IsAttached)
+                webView.Source = new Uri("http://localhost:5752/" + page);
+            else
             {
                 webView.CoreWebView2.AddWebResourceRequestedFilter(virtualHost + "/*", CoreWebView2WebResourceContext.All, CoreWebView2WebResourceRequestSourceKinds.All);
                 webView.CoreWebView2.WebResourceRequested += coreWebView2_WebResourceRequested;
