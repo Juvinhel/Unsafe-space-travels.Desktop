@@ -1,0 +1,36 @@
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Unsafe_space_travels.Desktop.Data
+{
+    static public class Github
+    {
+        static public void Init()
+        {
+            if (Client == null)
+            {
+                Client = new HttpClient();
+                Client.DefaultRequestHeaders.Add("User-Agent", "Unsafe-space-travels.Desktop.Updater");
+                Client.DefaultRequestHeaders.Add("Accept", "application/vnd.github+json");
+            }
+        }
+
+        static public HttpClient Client { get; set; }
+
+        static public async Task<ReleaseInfo> GetLatestRelease(string _githubUser, string _githubRepo)
+        {
+            string url = $"https://api.github.com/repos/{_githubUser}/{_githubRepo}/releases/latest";
+            using HttpResponseMessage response = await Client.GetAsync(url);
+            if (response.StatusCode == HttpStatusCode.NotFound) return null;
+
+            string content = await response.Content.ReadAsStringAsync();
+            return ReleaseInfo.Parse(content);
+        }
+    }
+}

@@ -1,0 +1,100 @@
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Diagnostics;
+using System.Linq;
+using System.Net.Http;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Data;
+using System.Windows.Documents;
+using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using System.Windows.Navigation;
+using System.Windows.Shapes;
+using Unsafe_space_travels.Desktop.Data;
+
+namespace Unsafe_space_travels.Desktop.UI
+{
+    /// <summary>
+    /// Interaktionslogik für StartupDialog.xaml
+    /// </summary>
+    public partial class StartupDialog
+    {
+        public StartupDialog()
+        {
+            InitializeComponent();
+            Github.Init();
+        }
+
+        private Version localVersion;
+        private ReleaseInfo latestRelease;
+
+        private async void startupDialog_Loaded(object _sender, RoutedEventArgs _e)
+        {
+            await Refresh();
+        }
+
+        public async Task Refresh()
+        {
+            #region check desktop
+            Version currentDesktopVersion = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
+            ReleaseInfo latestDesktopRelease = await Github.GetLatestRelease("Juvinhel", "Unsafe-space-travels.Desktop");
+            if (latestDesktopRelease != null && currentDesktopVersion < latestDesktopRelease.Version)
+            {
+                MessageBox.Show(
+                    $"A new version of the desktop application is available (v{latestDesktopRelease.Version}).\nYou are currently using v{currentDesktopVersion}.\n\nPlease update the desktop application first before using the web application.\n\nDo you want to open the download page now?",
+                    "Update Required",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+                Process.Start(new ProcessStartInfo()
+                {
+                    FileName = "https://github.com/Juvinhel/Unsafe-space-travels.Desktop/releases/latest",
+                    UseShellExecute = true
+                });
+                Application.Current.Shutdown();
+                return;
+            }
+            #endregion
+
+            if (File.Exists(StartUp.VersionFilePath))
+                localVersion = Version.Parse(File.ReadAllText(StartUp.VersionFilePath));
+
+            latestRelease = await Github.GetLatestRelease("Juvinhel", "Unsafe-space-travels.Web");
+
+            oldVersionTextBlock.Text = localVersion == null ? "Not Installed" : $"Installed Version: v{localVersion}";
+            newVersionTextBlock.Text = $"Online Version: v{latestRelease.Version}";
+
+            if (localVersion == null)
+                startUpdateTextBlock.Text = "Install App";
+
+            if (localVersion == latestRelease.Version)
+                startUpdateTextBlock.Text = "Repair App";
+
+            if (Debugger.IsAttached)
+                startAppGrid.Visibility = Visibility.Visible;
+            else if (localVersion != null)
+                startAppGrid.Visibility = Visibility.Visible;
+        }
+
+        private void startupDialog_Closing(object _sender, RoutedEventArgs _e)
+        {
+        }
+
+        private async void startUpdateHyperLink_Click(object _sender, RoutedEventArgs _e)
+        {
+            UpdateSplash updateSplash = new UpdateSplash(localVersion, latestRelease);
+            updateSplash.ShowDialog();
+
+            await Refresh();
+        }
+
+        private void startButton_Click(object sender, RoutedEventArgs e)
+        {
+            Close();
+        }
+    }
+}
